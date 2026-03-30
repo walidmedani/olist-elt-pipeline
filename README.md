@@ -4,6 +4,8 @@ An end-to-end batch data pipeline for the [Olist Brazilian E-Commerce dataset](h
 
 Raw CSV data is ingested from Kaggle, schema-enforced with Spark, stored in a GCS data lake, loaded into BigQuery, transformed with dbt, and visualised in Looker.
 
+[Reproduce This Project](#reproduce-this-project)
+
 ---
 
 ### Problem Statement
@@ -47,6 +49,9 @@ The challenge with this dataset is that the raw data lives across 9 separate fil
 | **GitHub Actions** | CI pipeline that runs dbt parse, compile, and test on every push |
 | **Make** | Shortcuts for common development commands |
 
+
+
+
 ---
 
 ### Data Model & Dictionary
@@ -88,9 +93,46 @@ The challenge with this dataset is that the raw data lives across 9 separate fil
 └───────────────────────┘          │ order_status                │
                                    └─────────────────────────────┘
 ```
-##### Target databases: GCP Data Lake & BigQuery
+### Mart Tables (Analytics Ready)
 
-##### Target tables: /raw & /processed
+#### `fct_orders`
+One row per order. Joins orders, customers, payments, and reviews into a single analytics-ready table.
+
+| Column | Type | Description |
+|---|---|---|
+| `order_id` | STRING | Unique identifier for each order |
+| `customer_id` | STRING | Foreign key to customers |
+| `order_status` | STRING | Current status of the order |
+| `order_purchase_timestamp` | TIMESTAMP | Date and time the order was placed |
+| `order_purchase_date` | DATE | Date portion of purchase timestamp, used for partitioning |
+| `order_delivered_customer_date` | TIMESTAMP | Date and time the customer received the order |
+| `order_estimated_delivery_date` | TIMESTAMP | Estimated delivery date shown at time of purchase |
+| `delivery_days` | INTEGER | Actual number of days from purchase to delivery, null if not yet delivered |
+| `customer_city` | STRING | Customer's city |
+| `customer_state` | STRING | Customer's state |
+| `total_payment_value` | DOUBLE | Sum of all payment values for this order |
+| `payment_count` | INTEGER | Number of payment transactions for this order |
+| `avg_review_score` | DOUBLE | Average review score (1-5), null if no review submitted |
+
+#### `fct_order_items`
+One row per item per order. Joins order items, products, sellers, and orders into a single analytics-ready table.
+
+| Column | Type | Description |
+|---|---|---|
+| `order_id` | STRING | Foreign key to orders |
+| `order_item_id` | INTEGER | Sequential item number within the order |
+| `product_id` | STRING | Foreign key to products |
+| `seller_id` | STRING | Foreign key to sellers |
+| `price` | DOUBLE | Item price in BRL |
+| `freight_value` | DOUBLE | Freight cost for this item in BRL |
+| `total_item_value` | DOUBLE | Combined price and freight (price + freight_value) |
+| `product_category_name_english` | STRING | English product category name |
+| `seller_city` | STRING | City where the seller is located |
+| `seller_state` | STRING | State where the seller is located |
+| `order_purchase_date` | DATE | Date the order was placed |
+| `order_status` | STRING | Current status of the order |
+
+##### `Data Inventory`
 
 `orders_dataset.csv`: Core table — order status, timestamps
 
