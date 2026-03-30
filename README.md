@@ -1,8 +1,8 @@
 # Olist E-Commerce Data Engineering Pipeline
 
-An end-to-end batch data pipeline for the [Olist Brazilian E-Commerce dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce), built as a final project for the Data Engineering Zoomcamp.
+An end-to-end batch data pipeline for the [Olist Brazilian E-Commerce dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce).
 
-Raw CSV data is ingested from Kaggle, schema-enforced with Spark, stored in a GCS data lake, loaded into BigQuery, transformed with dbt, and visualised in Power BI.
+Raw CSV data is ingested from Kaggle, schema-enforced with Spark, stored in a GCS data lake, loaded into BigQuery, transformed with dbt, and visualised in Looker.
 
 ---
 
@@ -17,9 +17,20 @@ The Olist dataset contains 9 CSV files covering orders, customers, products, sel
 
 ---
 
+## [View Dashboard](https://lookerstudio.google.com/reporting/ca2b76a6-db5f-40ba-be9d-91dee4f52dd0)
+
+[View Dashboard](https://lookerstudio.google.com/reporting/ca2b76a6-db5f-40ba-be9d-91dee4f52dd0)
+<img width="1488" height="1121" alt="image" src="https://github.com/user-attachments/assets/cefc019d-917f-4bbd-befa-eac8bc560a3d" />
+
+
 ## Architecture
+<img width="1920" height="1080" alt="pipeline_architecture" src="https://github.com/user-attachments/assets/c251a899-494a-4a40-9421-022529f32937" />
+
+
 
 ```
+![Uploading Group 1216.svg…]()
+
 ┌──────────────┐     ┌─────────────────────────────────────────────────────┐
 │   Kaggle API │────▶│                      GCS (Data Lake)                │
 │  (9 CSV files)│     │   raw/          -->   processed/                    │
@@ -38,7 +49,7 @@ The Olist dataset contains 9 CSV files covering orders, customers, products, sel
                      │   (views)           (tables)                        │
                      └────────────────────────────┬────────────────────────┘
                                                   │
-                                             Power BI
+                                             Looker
                                           (Dashboard)
 ```
 
@@ -49,6 +60,8 @@ The Olist dataset contains 9 CSV files covering orders, customers, products, sel
 ---
 
 ## Data Model
+<img width="762" height="729" alt="Group 1222" src="https://github.com/user-attachments/assets/8a94ff7a-864a-41c7-a936-2682f170a407" />
+
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -104,7 +117,7 @@ The Olist dataset contains 9 CSV files covering orders, customers, products, sel
 | **Google Cloud Storage** | Data lake storing raw CSVs and processed Parquet files |
 | **Google BigQuery** | Data warehouse with partitioning and clustering |
 | **dbt** | Staging and mart transformations with data quality tests |
-| **Power BI** | Business intelligence dashboard |
+| **Looker** | Business intelligence dashboard |
 | **GitHub Actions** | CI pipeline that runs dbt parse, compile, and test on every push |
 | **Make** | Shortcuts for common development commands |
 
@@ -112,7 +125,7 @@ The Olist dataset contains 9 CSV files covering orders, customers, products, sel
 
 ## Dashboard
 
-> Add screenshots here after publishing the Power BI report.
+> Add screenshots here after publishing the Looker report.
 
 **Tile 1: Top 10 Product Categories by Revenue**
 Bar chart from `fct_order_items` showing which categories drive the most sales.
@@ -122,28 +135,6 @@ Line chart from `fct_orders` showing revenue trends over time.
 
 **KPI Cards**
 Total Orders | Total Revenue | Avg Review Score | Late Deliveries
-
----
-
-## Problems Solved
-
-### 1. Missing `profiles.yml` - dbt could not connect to BigQuery
-
-**Cause:** dbt requires a `profiles.yml` to know how to connect to the warehouse. The file was not included in the repo (correctly, since it contains credentials) but was never created inside the container either. Every dbt run failed immediately with `Could not find profile named 'olist'`.
-
-**Fix:** Created `dbt/olist/profiles.yml` with the BigQuery service-account method, pointing to the credentials file mounted into the container via Docker volume at `/opt/airflow/credentials/olist-pipeline-sa.json`. Step 4 in the reproduction guide covers this.
-
-### 2. Duplicate rows in BigQuery - dbt uniqueness tests failing
-
-**Cause:** Spark writes Parquet files with randomly generated names like `part-00000-abc123.parquet`. Each DAG run uploaded new files with new names to GCS without removing the old ones. The BigQuery load job picks up everything under `processed/orders/*.parquet`, so after two runs every row appeared twice.
-
-**Fix:** Added a cleanup step in `spark/jobs/process_olist.py` that deletes all existing files in each `processed/<table>/` prefix before uploading new Parquet files. The GCS processed folder is treated as a snapshot, not an append log.
-
-### 3. dbt not installed in the Airflow container
-
-**Cause:** The `Dockerfile` only installed Spark and Google Cloud libraries. The `run_dbt` Airflow task calls `dbt` as a subprocess, so it needs to be on the container PATH.
-
-**Fix:** Added `dbt-bigquery==1.8.7` to the `pip install` step in the Dockerfile and rebuilt the images.
 
 ---
 
@@ -239,9 +230,9 @@ make dbt-run     # run all models
 make dbt-test    # run all tests
 ```
 
-### Step 7 - Connect Power BI
+### Step 7 - Connect Looker
 
-1. Open Power BI Desktop and go to **Get Data > Google BigQuery**
+1. Open Looker and go to **Get Data > Google BigQuery**
 2. Sign in with your Google account
 3. Navigate to `your-project-id > olist_dwh_marts`
 4. Load `fct_orders` and `fct_order_items`
