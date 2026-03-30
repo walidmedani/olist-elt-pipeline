@@ -59,7 +59,7 @@ The challenge with this dataset is that the raw data lives across 9 separate fil
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                  RAW SOURCES (BigQuery: olist_dwh)              │
-│                                                                  │
+│                                                                 │
 │  orders  order_items  order_payments  order_reviews  customers  │
 │  sellers  products  geolocation  category_translation           │
 └─────────────────────────────────────────────────────────────────┘
@@ -68,19 +68,19 @@ The challenge with this dataset is that the raw data lives across 9 separate fil
                               │
 ┌─────────────────────────────────────────────────────────────────┐
 │                  STAGING LAYER (olist_dwh_staging)              │
-│                                                                  │
+│                                                                 │
 │  stg_orders        stg_order_payments    stg_products           │
 │  stg_order_items   stg_order_reviews     stg_sellers            │
-│  stg_customers                                                   │
+│  stg_customers                                                  │
 └─────────────────────────────────────────────────────────────────┘
         │                                        │
         │           (dbt mart models)            │
         ▼                                        ▼
 ┌───────────────────────┐          ┌─────────────────────────────┐
 │      fct_orders       │          │       fct_order_items       │
-│ ------------------- │          │ --------------------------- │
-│ order_id (PK)         │          │ order_id (FK -> fct_orders) │
-│ customer_id           │◄─────────│ order_item_id               │
+│ --------------------- │          │ --------------------------- │
+│ order_id (PK)         │◄─────────│ order_id (FK -> fct_orders) │
+│ customer_id           │          │ order_item_id               │
 │ order_status          │          │ product_id                  │
 │ order_purchase_date   │          │ seller_id                   │
 │ order_delivered_date  │          │ price                       │
@@ -93,10 +93,10 @@ The challenge with this dataset is that the raw data lives across 9 separate fil
 └───────────────────────┘          │ order_status                │
                                    └─────────────────────────────┘
 ```
-### Mart Tables (Analytics Ready)
+#### Mart Tables (Analytics Ready)
 
 #### `fct_orders`
-One row per order. Joins orders, customers, payments, and reviews into a single analytics-ready table.
+> One row per order. Joins orders, customers, payments, and reviews into a single analytics-ready table.
 
 | Column | Type | Description |
 |---|---|---|
@@ -115,7 +115,7 @@ One row per order. Joins orders, customers, payments, and reviews into a single 
 | `avg_review_score` | DOUBLE | Average review score (1-5), null if no review submitted |
 
 #### `fct_order_items`
-One row per item per order. Joins order items, products, sellers, and orders into a single analytics-ready table.
+> One row per item per order. Joins order items, products, sellers, and orders into a single analytics-ready table.
 
 | Column | Type | Description |
 |---|---|---|
@@ -151,11 +151,6 @@ One row per item per order. Joins order items, products, sellers, and orders int
 `geolocation_dataset.csv`: ZIP code → lat/lng mapping
 
 `product_category_name_translation.csv`: Portuguese → English category names
-
-`fct_orders`: one row per order, joins orders + customers + payments + reviews
-
-`fct_order_items`: one row per item, joins order items + products + sellers + orders
-
 
 ---
 
