@@ -36,4 +36,5 @@ RUN pip install --no-cache-dir \
     pandas \
     google-cloud-storage \
     google-cloud-bigquery \
-    kaggle
+    kaggle \
+    dbt-bigquery==1.8.7

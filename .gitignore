@@ -20,3 +20,6 @@ __pycache__/
 
 # Airflow
 airflow/logs/
+
+#dbt
+profiles.yml

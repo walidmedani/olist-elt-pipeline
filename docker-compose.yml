@@ -19,6 +19,7 @@ x-airflow-common: &airflow-common
     - ./airflow/plugins:/opt/airflow/plugins
     - ./spark/jobs:/opt/airflow/spark/jobs
     - /home/walid/.gcp/olist-pipeline-sa.json:/opt/airflow/credentials/olist-pipeline-sa.json:ro
+    - ./dbt:/opt/airflow/dbt
   user: "50000:0"
   depends_on:
     postgres:
